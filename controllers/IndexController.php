@@ -58,13 +58,73 @@ class SimpleContact_IndexController extends Omeka_Controller_AbstractActionContr
     {
     }
 
+    /**
+     * reCAPTCHA V2 with file_get_contents
+     * not working, #todo: fix
+     */
+    protected function _checkReCaptcha()
+    {
+        try {
+            $url = 'https://www.google.com/recaptcha/api/siteverify';
+            $data = ['secret' => get_option('recaptcha_private_key'),
+                     'response' => strip_tags($_POST['g-recaptcha-response']),
+                     'remoteip' => $_SERVER['REMOTE_ADDR'],
+                    ];
+
+            $options = [
+                'http' => [
+                    'header' => sprintf("Content-type: application/x-www-form-urlencoded\r\nContent-Length: %d\r\n", strlen(http_build_query($data))),
+                    'method' => 'POST',
+                    'data' => http_build_query($data)
+                ]
+            ]; 
+            $context = stream_context_create($options);
+            $result = file_get_contents($url, false, $context);
+            return json_decode($result)->success;
+        }
+        catch (Exception $e) {
+            return null;
+        }
+    }
+
+    /**
+     * reCAPTCHA V2 with cURL
+     */
+    protected function _checkReCaptcha2()
+    {
+        $url = 'https://www.google.com/recaptcha/api/siteverify';
+        $data = ['secret' => get_option('recaptcha_private_key'),
+                 'response' => strip_tags($_POST['g-recaptcha-response']),
+                 'remoteip' => $_SERVER['REMOTE_ADDR'],
+                ];
+
+        // open connection
+        $ch = curl_init();
+
+        // set the url, number of POST vars, POST data
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, count($data));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+
+        // return the value instead of printing it
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        // execute post
+        $result = curl_exec($ch);
+
+        // close connection
+        curl_close($ch);
+        return json_decode($result)->success;
+    }
+
     protected function _validateFormSubmission($captcha = null)
     {
         $valid = true;
         $message = $this->getRequest()->getPost('message');
         $email = $this->getRequest()->getPost('email');
-        // ZF ReCaptcha ignores the 1st arg.
-        if ($captcha and !$captcha->isValid('foo', $_POST)) {
+
+        if ($captcha and !$this->_checkReCaptcha2()) {
+
             $this->_helper->flashMessenger(__('Your CAPTCHA submission was invalid, please try again.'));
             $valid = false;
         }

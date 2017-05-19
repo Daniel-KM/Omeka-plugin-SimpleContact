@@ -1,3 +1,4 @@
+<?php queue_js_url("https://www.google.com/recaptcha/api.js"); head_js(); ?>
 <div id="simple-contact">
     <?php echo $this->form('contact_form', $options['form_attributes']); ?>
         <div class="field">
@@ -18,11 +19,11 @@
                 <?php echo $this->formTextarea('message', $options['message'], array('class' => 'textinput', 'rows' => '10')); ?>
             </div>
         </div>
-        <?php if ($options['captcha']): ?>
         <div class="field">
-            <?php echo $options['captcha']; ?>
+            <?php if (Omeka_Captcha::getCaptcha()): ?>
+            <div class="g-recaptcha" data-sitekey="6LcoeSEUAAAAAA5J5bJRK2Uoh8BqSvem1qHqunQK"></div>
+            <?php endif; ?>
         </div>
-        <?php endif; ?>
         <?php echo $this->formHidden('path', $options['path']); ?>
         <div class="field">
             <?php echo $this->formSubmit('send', __('Send Message')); ?>
