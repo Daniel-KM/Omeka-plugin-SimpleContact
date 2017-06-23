@@ -21,7 +21,7 @@
         </div>
         <div class="field">
             <?php if (Omeka_Captcha::getCaptcha()): ?>
-            <div class="g-recaptcha" data-sitekey="6LcoeSEUAAAAAA5J5bJRK2Uoh8BqSvem1qHqunQK"></div>
+            <div class="g-recaptcha" data-sitekey="<?php echo get_option('recaptcha_public_key'); ?>"></div>
             <?php endif; ?>
         </div>
         <?php echo $this->formHidden('path', $options['path']); ?>
