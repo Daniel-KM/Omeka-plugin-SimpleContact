@@ -24,6 +24,7 @@ class SimpleContactPlugin extends Omeka_Plugin_AbstractPlugin
         'config',
         'define_routes',
         'define_acl',
+        'public_head',
     );
 
     /**
@@ -299,5 +300,12 @@ class SimpleContactPlugin extends Omeka_Plugin_AbstractPlugin
     public function shortcodeSimpleContact($args, $view)
     {
         return $view->simpleContactForm((array) $args);
+    }
+    
+    public function hookPublicHead($args)
+    {
+        if (Omeka_Captcha::getCaptcha()) {
+            queue_js_url('https://www.google.com/recaptcha/api.js', array('async', 'defer'));
+        } 
     }
 }
